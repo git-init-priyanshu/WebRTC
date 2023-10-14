@@ -52,7 +52,7 @@ button:focus-visible {
   justify-content: center;
   align-items: center;
   & > .input-container {
-    & > input {
+    & > form > input {
       font-size: 20px;
       display: block;
       padding: 6px 20px;
@@ -63,7 +63,7 @@ button:focus-visible {
         outline: none;
       }
     }
-    & > button {
+    & > form > button {
       margin-left: 10px;
       background-color: rgb(95, 95, 95);
       color: rgb(190, 190, 190);

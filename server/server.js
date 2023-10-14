@@ -1,33 +1,37 @@
 const express = require("express");
-const { Server } = require("socket.io");
+const app = express();
+const http = require("http").Server(app);
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
-const io = new Server({
+app.use(bodyParser.json());
+app.use(cors());
+
+const io = require("socket.io")(http, {
   cors: {
     origin: "http://127.0.0.1:5173",
   },
 });
-const app = express();
-
-app.use(bodyParser.json());
 
 // Creating a mapping to store emailId, socketId as key-value
 const mapping = new Map();
+const reverseMapping = new Map();
 
 io.on("connection", (socket) => {
   console.log("connected");
   socket.on("join-room", (data) => {
-    const { roomId, emailId } = data;
-    console.log("user joined", emailId, "room id", roomId);
-    mapping.set(emailId, socket.id);
+    const { emailId, roomId } = data;
 
     socket.join(roomId);
-    socket.broadcast.to(roomId).emit("user-joined", emailId);
+
+    mapping.set(emailId, socket.id);
+    reverseMapping.set(socket.id, emailId);
+
+    // socket.broadcast.to(roomId).emit("user-joined", data);
+    io.to(socket.id).emit("user-joined",data);
   });
 });
 
-app.listen(8000, () => {
+http.listen(8000, () => {
   console.log("server listening on port 8000");
 });
-
-io.listen(8001);
