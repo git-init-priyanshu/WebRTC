@@ -6,9 +6,9 @@ import {
   Outlet,
 } from "react-router-dom";
 
+import { SocketProvider } from "./providers/SocketProvider";
 import Home from "./pages/Home";
 import Room from "./pages/Room";
-// import { SocketProvider } from "./providers/Socket";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -21,9 +21,9 @@ const router = createBrowserRouter(
 export default function App() {
   return (
     <>
-      {/* <SocketProvider> */}
-      <RouterProvider router={router} />
-      {/* </SocketProvider> */}
+      <SocketProvider>
+        <RouterProvider router={router} />
+      </SocketProvider>
     </>
   );
 }
