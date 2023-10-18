@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -6,9 +7,14 @@ import {
   Outlet,
 } from "react-router-dom";
 
-import { SocketProvider } from "./providers/SocketProvider";
+import { useSocketContext } from "./providers/SocketProvider";
 import Home from "./pages/Home";
 import Room from "./pages/Room";
+
+export interface dataInterface {
+  emailId: string;
+  roomId: string;
+}
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -19,13 +25,15 @@ const router = createBrowserRouter(
   )
 );
 export default function App() {
-  return (
-    <>
-      <SocketProvider>
-        <RouterProvider router={router} />
-      </SocketProvider>
-    </>
-  );
+  const { socket } = useSocketContext();
+
+  useEffect(() => {
+    socket.connect();
+    return () => {
+      socket.disconnect();
+    };
+  }, [socket]);
+  return <RouterProvider router={router} />;
 }
 
 function Root() {

@@ -1,16 +1,7 @@
-const express = require("express");
-const app = express();
-const http = require("http").Server(app);
-const bodyParser = require("body-parser");
-const cors = require("cors");
+const { Server } = require("socket.io");
 
-app.use(bodyParser.json());
-app.use(cors());
-
-const io = require("socket.io")(http, {
-  cors: {
-    origin: "http://127.0.0.1:5173",
-  },
+const io = new Server(8000, {
+  cors: true,
 });
 
 // Creating a mapping to store emailId, socketId as key-value
@@ -18,20 +9,39 @@ const mapping = new Map();
 const reverseMapping = new Map();
 
 io.on("connection", (socket) => {
-  console.log("connected");
+  console.log("user joined with socket id:", socket.id);
   socket.on("join-room", (data) => {
-    const { emailId, roomId } = data;
-
-    socket.join(roomId);
+    const { emailId } = data;
 
     mapping.set(emailId, socket.id);
     reverseMapping.set(socket.id, emailId);
-
-    // socket.broadcast.to(roomId).emit("user-joined", data);
-    io.to(socket.id).emit("user-joined",data);
   });
-});
 
-http.listen(8000, () => {
-  console.log("server listening on port 8000");
+  socket.on("room-joined", (roomId) => {
+    socket.join(roomId);
+    // To broadcast the event
+    socket.to(roomId).emit("room:joined", { id: socket.id });
+    // To emit event to ourselves only
+    io.to(roomId).emit("room:joined");
+  });
+
+  socket.on("call-user", (data) => {
+    const { to, offer } = data;
+    io.to(to).emit("incomming-call", { from: socket.id, offer });
+  });
+
+  socket.on("call-accepted", (data) => {
+    const { to, ans } = data;
+    io.to(to).emit("call-accepted", { from: socket.id, ans });
+  });
+
+  socket.on("nagotiation", (data) => {
+    const { to, offer } = data;
+    io.to(to).emit("nagotiation", { from: socket.id, offer });
+  });
+
+  socket.on("nagotiation-done", (data) => {
+    const { to, ans } = data;
+    io.to(to).emit("nagotiation-done", { from: socket.id, ans });
+  });
 });

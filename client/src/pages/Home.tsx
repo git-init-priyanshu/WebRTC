@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useSocketContext } from "../providers/SocketProvider";
@@ -10,43 +10,21 @@ export default function Home() {
   const [emailId, setEmailId] = useState<string>("");
   const [roomId, setRoomId] = useState<string>("");
 
-  interface dataInterface {
-    emailId: string;
-    roomId: string;
-  }
-
-  const handleJoinRoom = useCallback((data: dataInterface) => {
-    const { emailId, roomId } = data;
-    navigate(`/room/${roomId}`);
-  }, []);
-
-  useEffect(() => {
-    socket.connect();
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    socket.on("user-joined", handleJoinRoom);
-    return () => {
-      socket.off("user-joined", handleJoinRoom);
-    };
-  }, [socket, handleJoinRoom]);
-
   const handleSubmitForm = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
       socket.emit("join-room", { emailId, roomId });
+      navigate(`/room/${roomId}`);
     },
-    [emailId, roomId, socket]
+    [socket, emailId, roomId, navigate]
   );
 
   return (
     <div className="homepage-container">
       <div className="input-container">
         <form onSubmit={handleSubmitForm}>
+          <label>Email</label>
           <input
             type="email"
             placeholder="Enter your email id"
@@ -55,6 +33,7 @@ export default function Home() {
               setEmailId(e.target.value);
             }}
           />
+          <label>Room Id</label>
           <input
             type="text"
             placeholder="Enter Room code"
